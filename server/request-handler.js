@@ -20,7 +20,7 @@ var nextAvailableID = 0;
 var router = {
   "/classes/chatterbox": true,
   "/classes/messages": true,
-  "/classes/room": true,
+  "/classes/room1": true,
   "/users": true,
   "/send": true
 };
@@ -46,6 +46,7 @@ var requestHandler = function(request, response) {
   console.log("requesting URL:", request.url);
   var url_parts = url.parse(request.url);
   var pathname = url_parts.pathname;
+  console.log(pathname);
   
   // debugger;
   // console.dir(request);
@@ -155,6 +156,6 @@ var defaultCorsHeaders = {
   "access-control-max-age": 10 // Seconds.
 };
 
-module.exports = requestHandler;
+exports.requestHandler = requestHandler;
 
 
