@@ -11,6 +11,21 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+// require("./message-data.js");
+var url = require("url");
+// var messages = new Messages();
+
+var results = [];
+var nextAvailableID = 0;
+var router = {
+  "/classes/chatterbox": true,
+  "/classes/messages": true,
+  "/classes/room": true,
+  "/users": true,
+  "/send": true
+};
+
+// var router = ['/classes/chatterbox', '/classes']
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -28,22 +43,49 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log("Serving request type " + request.method + " for url " + request.url);
-
+  console.log("requesting URL:", request.url);
+  var url_parts = url.parse(request.url);
+  var pathname = url_parts.pathname;
+  
+  // debugger;
+  // console.dir(request);
   // The outgoing status.
-  var statusCode = 200;
+  var statusCode = 404;
 
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
+
 
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
+  // headers['Content-Type'] = "text/html";
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  
+
+// var messages = [
+//   {
+//     "createdAt":"2015-09-07T22:18:30.745Z",
+//     "objectId":"a4IgVFOR43",
+//     "roomname":"lobby",
+//     "updatedAt":"2015-09-07T22:18:30.745Z",
+//     "username":"Brett"
+//   },
+//   {
+//     "createdAt":"2015-09-07T22:07:51.021Z",
+//     "objectId":"2pamrneV9F",
+//     "roomname":"all",
+//     "text":"this is working",
+//     "updatedAt":"2015-09-07T22:07:51.021Z",
+//     "username":"taylor"
+//   }];
+
+
+  // var res = JSON.stringify({'results': results});
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -52,7 +94,49 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  // response.write({'something':'something'});
+  // response.end();
+
+  if (router[pathname]) {
+    if (request.method === 'GET') {
+      statusCode = 200;
+      response.writeHead(statusCode, headers);
+      response.end(JSON.stringify({'results': results}));
+    }
+    else if (request.method === 'POST') {
+      statusCode = 201;
+      response.writeHead(statusCode, headers);
+      request.on('data', function(data){
+        var msg = JSON.parse(data.toString());
+        msg.objectId = nextAvailableID;
+        nextAvailableID++;
+        console.log(msg);
+        results.push(msg);
+      });
+      console.log(results);
+    // debugger;
+      // var m = new Message();
+      
+      response.end("<b>message received!</b>");
+    }
+    else if (request.method === 'OPTIONS') {
+      // console.dir(request);
+      statusCode = 200;
+      response.writeHead(statusCode, headers);
+      // request.on('data', function(data){
+      //   // console.log(data.toString());
+      // });
+      // // debugger;
+      // var m = new Message();
+      // messages.addMessage
+      response.end("<b>oppptions?</b>");
+    }
+  }
+  else {
+    response.writeHead(404, headers);
+    response.end();
+  }
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -70,4 +154,7 @@ var defaultCorsHeaders = {
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
 };
+
+module.exports = requestHandler;
+
 
